@@ -1,7 +1,7 @@
 from django.contrib.gis.gdal.error import OGRException
 from django.contrib.gis.gdal import SpatialReference
-from terrahub.index import GeoIndex
-from terrahub import settings
+from ga_spatialnosql.index import GeoIndex
+from ga_spatialnosql import app_settings as settings
 from bson import objectid
 import json
 from bson import json_util
@@ -395,7 +395,7 @@ class Connection(object, UserDict.DictMixin):
             a = self._connection[key]
 
     def __delitem__(self, key):
-        self._connection[key].drop()
+        self._connection.drop_database(key)
 
     def keys(self):
         return self._connection.database_names()

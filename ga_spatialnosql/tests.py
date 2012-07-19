@@ -245,16 +245,8 @@ class BasicApiTests(TestCase):
         r3 = self.client.get('/base/test_connection/test_db/test_collection3/')
         self.assertEqual(r3.status_code, 200, r3.content)
 
-        # make sure all of them are in the collection list now
-        collection_list = self.client.get('/base/test_connection/test_db/')
-        self.assertEqual(collection_list.status_code, 200, collection_list.content)
-        collections = json.loads(collection_list.content)
-        self.assertIn('test_collection1',collections)
-        self.assertIn('test_collection2',collections)
-        self.assertIn('test_collection3',collections)
-
         # make sure the one we created with properties retains those properties
-        properties_list = self.client.get('/base/test_connection/test_db/test_collection/properties/')
+        properties_list = self.client.get('/base/test_connection/test_db/test_collection1/properties/')
         self.assertEqual(properties_list.status_code, 200, properties_list.content)
         properties = json.loads(properties_list.content)
         self.assertIn('prop1', properties)
@@ -266,6 +258,19 @@ class BasicApiTests(TestCase):
         self.assertEqual(properties['prop3'], [])
         self.assertEqual(properties['prop4'], {})
 
+        prop1 = self.client.get('/base/test_connection/test_db/test_collection1/properties/prop1/')
+        self.assertEqual(prop1.status_code, 200)
+        prop1 = json.loads(prop1.content)
+        self.assertEqual(prop1['prop1'], 'str')
+
+        # make sure all of them are in the collection list now
+        collection_list = self.client.get('/base/test_connection/test_db/')
+        self.assertEqual(collection_list.status_code, 200, collection_list.content)
+        collections = json.loads(collection_list.content)
+        self.assertIn('test_collection1',collections)
+        self.assertIn('test_collection2',collections)
+        self.assertIn('test_collection3',collections)
+
         # make sure that when we get a lsiting of databases our test_db is in there
         db_list = self.client.get('/base/test_connection/')
         self.assertEqual(db_list.status_code, 200, db_list.content)
@@ -274,9 +279,9 @@ class BasicApiTests(TestCase):
 
         # make sure that when we get a listing of connections our test connection is in there
         connection_list = self.client.get('/base/')
-        self.assertEqual(condection_list.status_code, 200, db_list.content)
+        self.assertEqual(connection_list.status_code, 200, connection_list.content)
         conns = json.loads(connection_list.content)
-        self.assertIn('test_db', conns)
+        self.assertIn('test_connection', conns)
 
         # delete all our collections and make sure they were deleted
         self.client.delete('/base/test_connection/test_db/test_collection1/')
