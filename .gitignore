@@ -8,7 +8,6 @@ dist/
 *.egg-info/
 doc/build/*
 .idea/
-ga_spatialnosql/static/ga_spatialnosql/
 ga_spatialnosql/static/ga_spatialnosql/OpenLayers.js
 ga_spatialnosql/static/ga_spatialnosql/OpenLayers.mobile.js
 ga_spatialnosql/static/ga_spatialnosql/jquery-1.7.2.min.js
