@@ -102,6 +102,19 @@ class GeoIndex(object):
                 c.execute("SELECT CreateSpatialIndex('spatialindex_geometry', 'geom')")
                 c.execute("CREATE INDEX forward_index ON spatialindex_geometry (oid)")
 
+    @property
+    def bounds(self):
+        with self.cursor() as c:
+            c.execute('''SELECT
+                MIN(idx.xmin) As bxmin,
+                MIN(idx.ymin) As bymin,
+                MAX(idx.xmax) As bxmax,
+                MAX(idx.ymax) As bymax
+            from spatialindex_geometry as t
+            INNER JOIN idx_spatialindex_geometry_geom as idx on t.rowid = idx.pkid''')
+            return c.fetchall()[0]
+
+
     def close(self):
         self.db.close()
 
