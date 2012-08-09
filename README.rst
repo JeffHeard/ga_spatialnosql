@@ -47,13 +47,14 @@ GeoJSONCollection objects and insert features and query like this::
     # this can also be a JSON string or a python dict
 
 The find_features syntax does not require a GeoJSON document, so long as there
-is a "properties" containing a query spec that is a valid MongoDB query spec.
-However if it is a GeoJSON document, there are a myriad of query options.  A
-geographic query must have at a minimum a "type" of "Feature", a "geometry"
-property, and in the "properties" property, you must have a
-"geographic_operator".  Supported values for the geographic operator are those
-supported in Spatialite 3.0.1. For more information, consult the spatialite
-documentation:
+is a "properties" containing a query spec that contains a valid query spec in
+"query" and otherwise contains any or all of the keyword arguments available in
+PyMongo's find() method However if it is a GeoJSON document, there are a myriad
+of query options.  A geographic query must have at a minimum a "type" of
+"Feature", a "geometry" property, and in the "properties" property, you must
+have a "geographic_operator".  Supported values for the geographic operator are
+those supported in Spatialite 3.0.1. For more information, consult the
+spatialite documentation:
 
     * relate - Relation (must have a "relation" property in the query as well
     * bboverlaps - Bounding box overlaps
