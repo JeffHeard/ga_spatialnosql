@@ -1,0 +1,20 @@
+{# vars: NONE #}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% block title %}{% endblock %}</title>
+
+    <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/themes/humanity/jquery-ui.css">
+    {% block styles_extra %}<link rel='stylesheet' href="{% block stylesheet_url %}{% endblock %}">{% endblock %}
+
+    <script type="text/javascript" src='http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js'></script>
+    <script type="text/javascript" src='http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js'></script>
+    {% block script %}<script type="text/javascript" src='{% block script_name %}{% endblock %}'></script>{% endblock %}
+</head>
+<body>
+<h1>{% block heading %}{% endblock %}</h1>
+
+<div class="content">{% block content %}{% endblock %}</div>
+</body>
+</html>

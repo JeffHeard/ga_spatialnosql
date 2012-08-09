@@ -9,5 +9,4 @@ urlpatterns = patterns('',
     url(r'^(?P<connection>[^/]*)/(?P<db>[^/]*)/(?P<collection>[^/]*)/properties/$', api.CollectionPropertiesView.as_view()),
     url(r'^(?P<connection>[^/]*)/(?P<db>[^/]*)/(?P<collection>[^/]*)/properties/(?P<property>[^/]*)/$', api.CollectionPropertiesView.as_view()),
     url(r'^(?P<connection>[^/]*)/(?P<db>[^/]*)/(?P<collection>[^/]*)/(?P<object>[^/]*)/$', api.ObjectView.as_view()),
-
 )

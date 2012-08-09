@@ -1,0 +1,43 @@
+{# template vars: brand_name, connection_count, connections_problems[ problem[name,description] ], #}
+{#      summary[size,connections_per_hr,connections_per_day,connections_per_month,num_users] #}
+
+{# reffed scripts: ga_spatialnosql/connection_admin.js #}
+
+{# TODO add D3 bargraphs for daily and monthly connections #}
+{# TODO add D3 bargraphs for fill-level of currently selected connection #}
+{# TODO add D3 bargraphs for daily aggregated anonymous connections #}
+{# TODO add D3 bargraphs for daily aggregated registered connections #}
+
+{% extends 'ga_spatialnosql/admin.template.html' %}
+{% block script_name %}ga_spatialnosql/connection_admin.js{% endblock %}
+
+{% block title %}{{ brand_name }} GeoJSON Store administration{% endblock %}
+{% block heading %}{{ brand_name }} GeoJSON Store administration{% endblock %}
+
+{% block form_heading %}{{ connection_count }} connections total{% endblock %}
+{% block content_rest %}
+    {% if connections_problems %}
+        <div class="problems">
+        {% for problem in connections_problems %}
+            <div class="problem">
+                <span class="problem_name">{{ problem.name }}</span>
+                <span class="problem_description">{{ problem.description }}</span>
+            </div>
+        {% endfor %}
+        </div>
+    {% endif %}
+
+    <h2>Summary for all connections</h2>
+    <ul class="summary" id="all_summary">
+        <li><span class="name">Max size: </span><span class="value">{{ summary.max_size }}</span></li>
+        <li><span class="name">Current size: </span><span class="value">{{ summary.current_size }}</span></li>
+        <li><span class="name">Number of registered users: </span><span class="value">{{ summary.users }}</span></li>
+    </ul>
+
+    <h2>Summary for selected connection</h2>
+    <ul class="summary" id="all_summary">
+        <li><span class="name">Max size: </span><span class="value" id="curr_conn_max_size"></span></li>
+        <li><span class="name">Current size: </span><span class="value" id="curr_conn_curr_size"></span></li>
+        <li><span class="name">Number of registered users: </span><span id="curr_conn_users" class="value"></span></li>
+    </ul>
+{% endblock %}

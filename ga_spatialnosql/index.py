@@ -1,6 +1,4 @@
-
-__author__ = 'jeff'
-
+from pyspatialite._spatialite import IntegrityError
 import os
 from pyspatialite import dbapi2 as db
 
@@ -137,8 +135,11 @@ class GeoIndex(object):
             c.execute('delete from spatialindex_geometry')
 
     def bulk_insert(self, oids_and_geoms):
-        with self.transaction() as c:
-            c.executemany('INSERT INTO spatialindex_geometry (oid, geom) VALUES (?,GeomFromWKB(?, ?))', ((self._from_id(oid), geom.wkb, self.srid) for oid, geom in oids_and_geoms))
+        try:
+            with self.transaction() as c:
+                c.executemany('INSERT INTO spatialindex_geometry (oid, geom) VALUES (?,GeomFromWKB(?, ?))', ((self._from_id(oid), geom.wkb, self.srid) for oid, geom in oids_and_geoms))
+        except IntegrityError:
+            print [o for o,g  in oids_and_geoms]
 
     def insert(self, oid, geom, srid=None):
         if srid:

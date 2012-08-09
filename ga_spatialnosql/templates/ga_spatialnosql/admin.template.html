@@ -1,0 +1,31 @@
+{# vars: next_admin_url, item[id, name], info_url, delete_url, browse_url #}
+
+{% extends 'ga_spatialnosql/base.template.html' %}
+{% block content %}
+    <div class="item_list">
+        <form action="{{ next_admin_url }}" method='POST'>
+            {% csrf_token %}
+
+            <label for="item">{% block form_heading %}{% endblock %}</label>
+            <select name="item" id="item">
+                {% for item in items %}
+                <option value="{{ item.id }}">{{ item.name }}</option>
+                {% endfor %}
+            </select>
+
+            {% block info_button %}
+            <a id="info_button" class="button" href="{{ info_url }}"><img src="{{ STATIC_URL }}ga_spatialnosql/info.png" alt="Info"></a>
+            {% endblock %}
+
+            {% block delete_button %}
+            <a id="delete_button" class="button" href="{{ delete_url }}"><img src="{{ STATIC_URL }}ga_spatialnosql/delete.png" alt="Info"></a>
+            {% endblock %}
+
+            {% block browse_button %}
+            <a id="browse_button" class="button" href="{{ browse_url }}"><img src="{{ STATIC_URL }}ga_spatialnosql/browse.png" alt="Info"></a>
+            {% endblock %}
+        </form>
+
+        {% block content_rest %}{% endblock %}
+    </div>
+{% endblock %}

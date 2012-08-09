@@ -7,7 +7,7 @@ Replace this with more appropriate tests for your application.
 
 from django.test import TestCase
 from unittest import skip
-from ga_spatialnosql.db.pymongo import GeoJSONCollection
+from ga_spatialnosql.db.mongo import GeoJSONCollection
 from ga_spatialnosql.index import GeoIndex
 from django.contrib.gis.geos import Polygon
 from pyspatialite.dbapi2 import IntegrityError

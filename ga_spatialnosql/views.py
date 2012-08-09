@@ -1,5 +1,5 @@
 import shutil
-from ga_spatialnosql.db.pymongo import GeoJSONCollection
+from ga_spatialnosql.db.mongo import GeoJSONCollection
 from django.http import HttpResponseRedirect
 from django.views import generic as g
 from django import forms as f

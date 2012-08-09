@@ -1,0 +1,34 @@
+{# template vars: brand_name, connection_count, connections_problems[ problem[name,description] ], #}
+{#      summary[size,connections_per_hr,connections_per_day,connections_per_month,num_users] #}
+
+{# reffed scripts: ga_spatialnosql/db_admin.js #}
+
+{# TODO allow metadata editing directly.  Need JSON editor #}
+
+{% extends 'ga_spatialnosql/admin.template.html' %}
+{% block script_name %}ga_spatialnosql/connection_admin.js{% endblock %}
+
+{% block title %}Geoanalytics GeoJSON Collection administration{% endblock %}
+{% block heading %}Geoanalytics GeoJSON Collection administration{% endblock %}
+
+{% block form_heading %}{{ collection_count }} collections total{% endblock %}
+{% block content_rest %}
+    <h2>Summary for all collections</h2>
+    <ul class="summary" id="all_summary">
+        <li><span class="name">Max size: </span><span class="value">{{ summary.max_size }}</span></li>
+        <li><span class="name">Current size: </span><span class="value">{{ summary.current_size }}</span></li>
+    </ul>
+
+    <h2>Summary for selected collection</h2>
+    <ul class="summary" id="all_summary">
+        <li><span class="name">Number of features: </span><span class="value" id="curr_conn_max_size"></span></li>
+    </ul>
+
+    <h2>Collection Metadata</h2>
+    <ul class="summary" id="metadata_summary">
+        {% for key, value in metadata %}
+        <li><span class="name">{{ key }}</span><span class="value">{{ value }}</span></li>
+        {% endfor %}
+    </ul>
+
+{% endblock %}

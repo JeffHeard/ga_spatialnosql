@@ -7,6 +7,10 @@ import json
 from bson import json_util
 from django.contrib.gis.geos import GEOSGeometry
 import UserDict
+from pymongo.errors import AutoReconnect
+from logging import getLogger
+
+log = getLogger(__name__)
 
 def _from_objectid(oid):
     return str(oid)
@@ -59,21 +63,21 @@ class GeoJSONCollection(object, UserDict.DictMixin):
     def _get_real_geometry(self, feature):
         # untested, but finished
         # start by assuming we're just using our own CRS.
-
         fc = feature['type'] == 'FeatureCollection' # if we have a feature collection we have to iterate over all the features
         crs, reproject = self._normalize_srs(feature['crs']) if 'crs' in feature else (self.srid, False)
 
         if fc: # if we have a feature collection, collect the geometry
-            geometry = (GEOSGeometry(json.dumps(fs['geometry']), srid=crs) for fs in feature['features'])
             if reproject:                                        # if we have to reproject
                 for i, f in enumerate(feature['features']):      # iterate over all the features
-                    geometry[i].transform(self.srid)              # transform their geometry in place
-                    f['geometry'] = json.loads(geometry[i].json) # and change the geometry itself in the data
+                    geometry = f['geometry'] if isinstance(f['geometry'], GEOSGeometry) else GEOSGeometry(json.dumps(f['geometry']))
+                    geometry.transform(self.srid)              # transform their geometry in place
+                    f['geometry'] = json.loads(geometry.json) # and change the geometry itself in the data
                 feature['crs'] = self.srid
+            geometry = (GEOSGeometry(json.dumps(fs['geometry']), srid=crs) for fs in feature['features'])
         else: # we have only a single feature
-            geometry = GEOSGeometry(json.dumps(feature['geometry']), srid=crs)
+            geometry = feature['geometry'] if isinstance(feature['geometry'], GEOSGeometry) else GEOSGeometry(json.dumps(feature['geometry']))
             if reproject:
-                geometry.transform(self.crs)                    # reproject the feature if necessary
+                geometry.transform(self.srid)                    # reproject the feature if necessary
                 feature['geometry'] = json.loads(geometry.json) # and change the geometry itself in the data.
                 feature['crs'] = self.srid
 
@@ -168,7 +172,17 @@ class GeoJSONCollection(object, UserDict.DictMixin):
                 for f in features:
                     f['_parent'] = fcid
 
-                ids = self.coll.insert(features)
+                try:
+                    ids = self.coll.insert(features)
+                except AutoReconnect:
+                    ids = []
+                    for feature in features:
+                        try:
+                            i = self.coll.insert(feature)
+                            ids.append(i)
+                        except AutoReconnect:
+                            log.error('feature {f} wouldnt insert'.format(f=len(ids)))
+
 
                 self.index.bulk_insert(zip(ids, geometry))
             else:
@@ -185,7 +199,7 @@ class GeoJSONCollection(object, UserDict.DictMixin):
 
 
             oids = self.coll.insert(fs)
-            self.index.bulk_insert(zip(oids, geometry))
+            self.index.bulk_insert(zip(oids, gs))
 
 
     def delete_feature(self, oid):
