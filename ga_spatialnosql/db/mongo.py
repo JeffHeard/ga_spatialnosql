@@ -251,8 +251,42 @@ class GeoJSONCollection(object, UserDict.DictMixin):
             ret[k] = v
         return ret
 
-    def find_features(self, geo_spec=None, spec=None, fields=None, skip=0, limit=0, timeout=True, snapshot=False, tailable=False, sort=None, max_scan=None,
+    def find_features(self, query=None, geo_spec=None, spec=None, fields=None, skip=0, limit=0, timeout=True, snapshot=False, tailable=False, sort=None, max_scan=None,
              as_class=None, slave_okay=False, await_data=False, partial=False, manipulate=True, **kwargs):
+
+        if query:
+            if isinstance(query, str) or isinstance(query, unicode):
+                query = json.loads(query)
+            try:
+                spec = query['properties']['query'] if 'query' in query['properties'] else None
+                fields = query['properties']['fields'] if 'fields' in query['properties'] else None
+                skip = query['properties']['skip'] if 'skip' in query['properties'] else None
+                limit = query['properties']['limit'] if 'limit' in query['properties'] else None
+                timeout = query['properties']['timeout'] if 'timeout' in query['properties'] else None
+                snapshot = query['properties']['snapshot'] if 'snapshot' in query['properties'] else None
+                sort = query['properties']['sort'] if 'sort' in query['properties'] else None
+                max_scan = query['properties']['max_scan'] if 'max_scan' in query['properties'] else None
+                slave_okay = query['properties']['slave_okay'] if 'slave_okay' in query['properties'] else None
+                manipulate = query['properties']['manipulate'] if 'manipulate' in query['properties'] else None
+                tailable = query['properties']['tailable'] if 'tailable' in query['properties'] else None
+                as_class = query['properties']['as_class'] if 'as_class' in query['properties'] else None
+                await_data = query['properties']['await_data'] if 'await_data' in query['properties'] else None
+                partial = query['properties']['partial'] if 'partial' in query['properties'] else None
+                srid = int(query['properties']['srid']) if 'srid' in query['properties'] else self.coll.srid
+                srid = int(query['crs']) if 'crs' in query['properties'] and srid is None else self.coll.srid
+                query_type = query['type'] if 'type' in query else None
+                if query_type == 'Feature':
+                    if query['geometry']['type'] == 'GeometryCollection':
+                        geoms = [GEOSGeometry(json.dumps(g), srid) for g in query['geometry']['geometries']]
+                        operators = query['properties']['geographic_operators']
+                        geo_spec = dict(zip(operators, geoms))
+                    else:
+                        geom = GEOSGeometry(json.dumps(query['geometry'], srid))
+                        geo_spec = { query['properties']['geographic_operator'] : [geom] }
+                        if "relation" in query['properties'] and query['properties']['geoegraphic_operator'] == 'relate':
+                            geo_spec['relate'].append( query['properties']['relation'] )
+            except KeyError as e:
+                raise TypeError("""Query must be either a GeoJSON document or in GeoJSON style with a "properties" attribute at minimum.""")
 
         if geo_spec and spec:
             geo_ids = _chunk(self._find_geo(geo_spec))

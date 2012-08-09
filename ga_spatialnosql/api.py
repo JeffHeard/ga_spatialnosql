@@ -76,33 +76,24 @@ class CollectionView(View):
     def get(self, request, *args, **kwargs):
         log.debug('accepting a query to {connection}:{db}:{collection}'.format(**kwargs))
         log.debug('query: {query}'.format(query=request.REQUEST.get('query', None)))
-        log.debug('geoquery: {geo_query}'.format(geo_query=request.REQUEST.get('geo_query', None)))
 
         collection = connections.CONNECTIONS[ kwargs['connection'] ][ kwargs['db'] ][ kwargs['collection'] ]
         query = request.REQUEST.get('query', None)
-        geo_query = request.REQUEST.get('geo_query', None)
-        if query:
-            query = collection.deserialize(query)
-        if geo_query:
-            geo_query = collection.deserialize(geo_query)
-
-        if query or geo_query:
-            return _json_response(request, list(collection.find_features(spec=query, geo_spec=geo_query)))
-        else:
-            return _json_response(request, list(collection.find_features()))
-
+        return _json_response(request, list(collection.find_features(query=query)))
 
     def post(self, request, *args, **kwargs):
         log.debug('appending an object to collection {connection}:{db}:{collection}'.format(**kwargs))
 
         collection = connections.CONNECTIONS[ kwargs['connection'] ][ kwargs['db'] ][ kwargs['collection'] ]
-        if len(request.POST.keys()) == 1 and 'object' in request.POST:
+        if 'object' in request.POST:
             object = collection.deserialize(request.POST['object'])
+            oid = collection.insert(object)
             log.debug('appending an object from JSON with keys {keys}'.format(keys=object.keys))
-        else:
-            object = dict(request.POST)
-            log.debug('appending an object from the POST dict with keys {keys}'.format(keys=object.keys))
-        collection.save(object)
+            return _json_response(request, { "oid" : str(oid) })
+        elif 'query' in request.POST:
+            query = request.POST['query']
+            log.debug('querying an object from JSON: {query}'.format(query=query))
+            return _json_response(request, list(collection.find_features(query=query)))
 
     def put(self, request, *args, **kwargs):
         log.debug('updating objects in place on {connection}:{db}:{collection} matching {query}'.format(**dict(kwargs, query=request.REQUEST.get('query', None)) ))
@@ -114,6 +105,7 @@ class CollectionView(View):
         updates = request.REQUEST['updates']
         geo_query = request.REQUEST.get('geo_query', None)
         collection.update(query=query, geo_query=geo_query, updates=updates)
+        return HttpResponse()
 
     def delete(self, request, *args, **kwargs):
         log.debug('deleting the collection at {connection}:{db}:{collection}'.format(**kwargs))
