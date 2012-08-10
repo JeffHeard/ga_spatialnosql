@@ -6,6 +6,7 @@ INIT_SQL_PATH = '/Users/jeff/Source/geoanalytics/init_spatialite-2.3.sql'
 INDEX_TEMPLATE_PATH = '/Users/jeff/Source/geoanalytics/spatialindex_template.spatialite'
 INDEX_PATH = "/Users/jeff/Source/geoanalytics/ga/"
 DEFAULT_SRID = 4326
+DEFAULT_DB_QUOTA = 2**30*5 # five gigabytes
 
 
 APP_LOGGING = {
