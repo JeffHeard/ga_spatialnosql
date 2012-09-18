@@ -230,7 +230,6 @@ class AuthenticatedDBView(DBView):
                 {("group:" + grp.name for grp in request.user.groups)}.intersection(permissions[permission])
             ))
 
-
     def get(self, request, *args, **kwargs):
         if self._check_permissions('read',request, *args, **kwargs):
             return super(AuthenticatedDBView, self).get(request, *args, **kwargs)
@@ -363,3 +362,60 @@ class AuthenticatedObjectView(ObjectView):
         if self._check_permissions('delete', request, *args, **kwargs):
             return super(AuthenticatedObjectView, self).delete(request, *args, **kwargs)
 
+
+
+class AuthenticatedCollectionPropertiesView(CollectionPropertiesView):
+    ALL = 1
+    AUTHENTICATED = 2
+    OWNER = 3
+
+    PERMISSIONS_KEY='permissions'
+
+    default_permissions = {
+        'read' : ALL,
+        'write' : OWNER,
+        'delete' : OWNER,
+        }
+
+    def get_collection(self, request, *args, **kwargs):
+        accessed_username = kwargs['accessed_username'] # this will become the database name
+        accessed_user = User.objects.get(username=accessed_username)  # we need check to see what connection group this user is in
+        connection_group = accessed_user.groups.filter(name__startswith = 'ga_spatialnosql_')[0].name[len('ga_spatialnosql_'):]
+
+        # collection = connection=connection_group;db=accessed_username;collection=kwargs.collection
+        return connections.CONNECTIONS[ connection_group ][ accessed_username ][ kwargs['collection'] ]
+
+    def get_permissions(self, request, collection, *args, **kwargs):
+        return collection[self.PERMISSIONS_KEY] if self.PERMISSIONS_KEY in self.PERMISSIONS_KEY else self.default_permissions
+
+    def _check_permissions(self, permission, request, *args, **kwargs):
+        collection = self.get_collection(request, *args, **kwargs)
+        permissions = self.get_permissions(request, collection, *args, **kwargs)
+        owner = kwargs['accessed_username']
+
+        return any((
+            permissions[permission] == AuthenticatedObjectView.ALL,
+            permissions[permission] == self.OWNER and request.user.username == owner,
+            permissions[permission] == self.AUTHENTICATED and request.user.is_authenticated(),
+            permissions[permission] == None and request.user.username == owner,
+            request.user.is_superuser(),
+            'admin_ga_spatialnosql' in {(grp.name for grp in request.user.groups)},
+            ('user:' + request.user.username) in permissions[permission],
+            set(['group:' + grp.name for grp in request.user.groups]).intersection(permissions[permission])
+            ))
+
+    def get(self, request, *args, **kwargs):
+        if self._check_permissions('read', request, *args, **kwargs):
+            return super(AuthenticatedCollectionPropertiesView, self).get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        if self._check_permissions('write', request, *args, **kwargs):
+            return super(AuthenticatedCollectionPropertiesView, self).post(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        if self._check_permissions('write', request, *args, **kwargs):
+            return super(AuthenticatedCollectionPropertiesView, self).put(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        if self._check_permissions('delete', request, *args, **kwargs):
+            return super(AuthenticatedCollectionPropertiesView, self).delete(request, *args, **kwargs)
